@@ -54,7 +54,6 @@ classificador.compile(optimizer=otimizador, loss="binary_crossentropy",metrics=[
 classificador.fit(previsores_treinamento,classe_treinamento,batch_size=10,epochs=100)
 
 
-
 #AVALIANDO A ACURACIA DO MODELO
 previsoes = classificador.predict(previsores_teste)
 previsoes = (previsoes>0.5)
@@ -70,6 +69,10 @@ resultado = classificador.evaluate(previsores_teste,classe_teste)
 
 
 
+#Visualização de pesos
+pesos_camada_0 = classificador.layers[0].get_weights
+pesos_camada_1 = classificador.layers[1].get_weights
+pesos_camada_2 = classificador.layers[2].get_weights
 
 
 
