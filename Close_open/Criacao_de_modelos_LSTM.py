@@ -130,19 +130,73 @@ def criarRedeNeural(previsores, preco_real, filepath, epocas=300, validacao_cruz
 
 
 
+def ReduzirRuido(base,pulo=5):
+    
+    de = 0
+    ate = pulo
+    
+    df = base.tail(len(base)-(len(base)%pulo))
+
+    df = df.reset_index()
+
+    lista_diario = list()
+    
+    for i in range(int(len(df)/pulo)):
+
+        lista_diario.append(df[de:ate])
+
+        de += pulo
+        ate += pulo
+    
+    
+    abertura = list()
+    fechamento = list()
+    maximo = list()
+    minimo = list()
+    datas = list()
+
+    i = 0
+    for triario in lista_diario:
+
+        datas.append(triario["Date"][i])
+        abertura.append(triario["Open"][i])
+        fechamento.append(triario["Close"][i+(pulo-1)])
+        maximo.append(triario["High"].max())
+        minimo.append(triario["Low"].min())
+
+        i+=pulo
+        
+        
+    triario = zip(datas,abertura,fechamento,minimo,maximo)
+    
+    triario_df = pd.DataFrame(triario,columns=["Date","Open","Close","Low","High"])
+    
+    triario_df = triario_df.set_index("Date")
+
+    return triario_df
+
+
 
 
 ativo ="PETR3.SA"
+pulo_=4
 
-ativo_df = yf.download(tickers = ativo,period = "1y", start="2019-01-01")
+ativo_df = yf.download(tickers = ativo,period = "1y", start="2010-01-01")
 
-ativo_df["Diferenca"] = ativo_df["Close"] - ativo_df["Open"]
+if pulo_!=0:
 
-ativo_df_semOutliers = pd.DataFrame(remove_outliers(ativo_df["Diferenca"]),columns=["Diferenca"])
+    ativo_df_sem_ruido = ReduzirRuido(ativo_df,pulo=pulo_)
 
-diferenca_normalizada = NormalizarDiferenca(ativo_df_semOutliers)
+    ativo_df_sem_ruido["Diferenca"] = ativo_df_sem_ruido["Close"] - ativo_df_sem_ruido["Open"]
 
-previsorees,resultado = preparar_dados_para_treinamento(15, diferenca_normalizada["Diferenca"])
+    ativo_df_semOutliers = pd.DataFrame(remove_outliers(ativo_df_sem_ruido["Diferenca"]),columns=["Diferenca"])
+
+else:
+    
+    ativo_df["Diferenca"] = ativo_df["Close"] - ativo_df["Open"]
+
+    ativo_df_semOutliers = pd.DataFrame(remove_outliers(ativo_df["Diferenca"]),columns=["Diferenca"])
+    
 
 
 
